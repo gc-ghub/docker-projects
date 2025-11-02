@@ -1,0 +1,34 @@
+services:
+  web:
+    build: .
+    container_name: stark-volume-django-app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./core:/app/core           # Mount only your Django app code
+      - static_volume:/app/staticfiles  # Persist static files if needed
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    container_name: stark-postgres-db
+    environment:
+      POSTGRES_DB: starkdb
+      POSTGRES_USER: starkuser
+      POSTGRES_PASSWORD: starkpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
+  static_volume:
+
